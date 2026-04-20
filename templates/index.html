@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Cost Prediction - Data & Prediksi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-card .label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* Main Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 25px;
+        }
+
+        /* Form Section */
+        .form-section, .data-section, .stats-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Result Card */
+        .result-card {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+        }
+
+        .result-card.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .prediction-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2e7d32;
+            margin: 10px 0;
+        }
+
+        /* Data Table */
+        .data-table-wrapper {
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            margin-top: 20px;
+            height: 300px;
+        }
+
+        canvas {
+            max-height: 300px;
+            width: 100%;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .tab-btn {
+            background: none;
+            color: #666;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 0;
+            margin: 0;
+            width: auto;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            background: none;
+        }
+
+        .tab-btn:hover {
+            transform: none;
+            background: #f5f5f5;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .error-card {
+            margin-top: 20px;
+            padding: 15px;
+            background: #ffebee;
+            color: #c62828;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .error-card.show {
+            display: block;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏥 Healthcare Cost Prediction System</h1>
+            <p>Analisis Data dan Prediksi Biaya Tagihan Medis dengan Machine Learning</p>
+        </div>
+
+        <!-- Stats Cards (akan diisi dengan JavaScript) -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="value" id="totalRecords">-</div>
+                <div class="label">Total Records</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="avgBilling">-</div>
+                <div class="label">Rata-rata Billing Amount</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="minBilling">-</div>
+                <div class="label">Min Billing Amount</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="maxBilling">-</div>
+                <div class="label">Max Billing Amount</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="uniqueConditions">-</div>
+                <div class="label">Kondisi Medis</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-grid">
+            <!-- Left: Prediction Form -->
+            <div class="form-section">
+                <div class="section-title">🔮 Prediksi Biaya Tagihan</div>
+                
+                <form id="predictionForm" method="POST" action="/predict">
+                    <div class="form-group">
+                        <label>📊 Umur (Tahun)</label>
+                        <input type="number" id="Age" name="Age" required min="0" max="120" step="1" placeholder="Contoh: 45">
+                    </div>
+
+                    <div class="form-group">
+                        <label>⚥ Jenis Kelamin</label>
+                        <select id="Gender" name="Gender" required>
+                            <option value="">Pilih Jenis Kelamin</option>
+                            <option value="Female">Perempuan (Female)</option>
+                            <option value="Male">Laki-laki (Male)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🩸 Golongan Darah</label>
+                        <select id="Blood Type" name="Blood Type" required>
+                            <option value="">Pilih Golongan Darah</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🏥 Kondisi Medis</label>
+                        <select id="Medical Condition" name="Medical Condition" required>
+                            <option value="">Pilih Kondisi Medis</option>
+                            <option value="Arthritis">Radang Sendi (Arthritis)</option>
+                            <option value="Asthma">Asma (Asthma)</option>
+                            <option value="Cancer">Kanker (Cancer)</option>
+                            <option value="Diabetes">Diabetes</option>
+                            <option value="Hypertension">Hipertensi (Hypertension)</option>
+                            <option value="Obesity">Obesitas (Obesity)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="submitBtn">
+                        🔮 Prediksi Billing Amount
+                    </button>
+                </form>
+
+                <!-- Result -->
+                <div id="resultCard" class="result-card">
+                    <div style="font-size: 14px; color: #666;">💰 Estimasi Biaya Tagihan</div>
+                    <div id="predictionDisplay" class="prediction-value">-</div>
+                    <div class="badge" style="background: #c8e6c9; padding: 5px 10px; border-radius: 20px; font-size: 12px;">
+                        Berdasarkan model Linear Regression
+                    </div>
+                </div>
+
+                <div id="errorCard" class="error-card"></div>
+            </div>
+
+            <!-- Right: Data & Statistics -->
+            <div class="data-section">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('data')">📋 Data Pasien</button>
+                    <button class="tab-btn" onclick="switchTab('stats')">📊 Statistik</button>
+                    <button class="tab-btn" onclick="switchTab('chart')">📈 Visualisasi</button>
+                </div>
+
+                <!-- Tab 1: Data Table -->
+                <div id="dataTab" class="tab-content active">
+                    <div class="data-table-wrapper">
+                        <table id="dataTable">
+                            <thead>
+                                <tr>
+                                    <th>Age</th>
+                                    <th>Gender</th>
+                                    <th>Blood Type</th>
+                                    <th>Medical Condition</th>
+                                    <th>Billing Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr><td colspan="5">Loading data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Statistics -->
+                <div id="statsTab" class="tab-content">
+                    <div id="statsDetails"></div>
+                </div>
+
+                <!-- Tab 3: Chart -->
+                <div id="chartTab" class="tab-content">
+                    <canvas id="billingChart"></canvas>
+                    <div style="margin-top: 15px; text-align: center; color: #666; font-size: 12px;">
+                        Distribusi Billing Amount berdasarkan Kondisi Medis
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data yang akan diisi dari server-side
+        let dataset = [];
+        let billingChart = null;
+
+        // Load data dari server saat halaman dimuat
+        async function loadData() {
+            try {
+                const response = await fetch('/api/data');
+                if (response.ok) {
+                    const data = await response.json();
+                    dataset = data.data;
+                    updateStatsAndTable();
+                } else {
+                    // Jika API tidak tersedia, gunakan data contoh
+                    console.log('Using sample data');
+                    loadSampleData();
+                }
+            } catch (error) {
+                console.log('Using sample data');
+                loadSampleData();
+            }
+        }
+
+        function loadSampleData() {
+            // Data contoh dari dataset Anda
+            dataset = [
+                {Age: 81, Gender: 'Female', BloodType: 'O-', MedicalCondition: 'Diabetes', BillingAmount: 37490.98},
+                {Age: 35, Gender: 'Male', BloodType: 'O+', MedicalCondition: 'Asthma', BillingAmount: 47304.06},
+                {Age: 61, Gender: 'Male', BloodType: 'B-', MedicalCondition: 'Obesity', BillingAmount: 36874.90},
+                {Age: 49, Gender: 'Male', BloodType: 'B-', MedicalCondition: 'Asthma', BillingAmount: 23303.32},
+                {Age: 51, Gender: 'Male', BloodType: 'O-', MedicalCondition: 'Arthritis', BillingAmount: 18086.34},
+                {Age: 41, Gender: 'Male', BloodType: 'AB+', MedicalCondition: 'Arthritis', BillingAmount: 22522.36},
+                {Age: 82, Gender: 'Male', BloodType: 'AB+', MedicalCondition: 'Hypertension', BillingAmount: 39593.44},
+                {Age: 55, Gender: 'Female', BloodType: 'O-', MedicalCondition: 'Arthritis', BillingAmount: 13546.82},
+                {Age: 33, Gender: 'Male', BloodType: 'A+', MedicalCondition: 'Diabetes', BillingAmount: 24903.04},
+                {Age: 39, Gender: 'Female', BloodType: 'O-', MedicalCondition: 'Asthma', BillingAmount: 22788.24},
+                {Age: 45, Gender: 'Male', BloodType: 'B-', MedicalCondition: 'Cancer', BillingAmount: 40325.07},
+                {Age: 23, Gender: 'Female', BloodType: 'O-', MedicalCondition: 'Hypertension', BillingAmount: 6185.90}
+            ];
+            updateStatsAndTable();
+        }
+
+        function updateStatsAndTable() {
+            if (dataset.length === 0) return;
+            
+            // Update stat cards
+            const billings = dataset.map(d => d.BillingAmount);
+            const avgBilling = billings.reduce((a,b) => a + b, 0) / billings.length;
+            const minBilling = Math.min(...billings);
+            const maxBilling = Math.max(...billings);
+            const uniqueConditions = [...new Set(dataset.map(d => d.MedicalCondition))];
+            
+            document.getElementById('totalRecords').textContent = dataset.length;
+            document.getElementById('avgBilling').textContent = '$' + avgBilling.toFixed(2);
+            document.getElementById('minBilling').textContent = '$' + minBilling.toFixed(2);
+            document.getElementById('maxBilling').textContent = '$' + maxBilling.toFixed(2);
+            document.getElementById('uniqueConditions').textContent = uniqueConditions.length;
+            
+            // Update table
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            dataset.slice(0, 50).forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.Age}</td>
+                    <td>${row.Gender}</td>
+                    <td>${row.BloodType}</td>
+                    <td>${row.MedicalCondition}</td>
+                    <td>$${row.BillingAmount.toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            // Update stats details
+            updateStatsDetails();
+            
+            // Update chart
+            updateChart();
+        }
+        
+        function updateStatsDetails() {
+            const statsHtml = `
+                <div style="display: grid; gap: 15px;">
+                    <div style="background: #f5f5f5; padding: 15px; border-radius: 10px;">
+                        <h4>📊 Distribusi Berdasarkan Kondisi Medis</h4>
+                        ${generateConditionStats()}
+                    </div>
+                    <div style="background: #f5f5f5; padding: 15px; border-radius: 10px;">
+                        <h4>⚥ Distribusi Berdasarkan Gender</h4>
+                        ${generateGenderStats()}
+                    </div>
+                    <div style="background: #f5f5f5; padding: 15px; border-radius: 10px;">
+                        <h4>🩸 Distribusi Berdasarkan Golongan Darah</h4>
+                        ${generateBloodTypeStats()}
+                    </div>
+                    <div style="background: #f5f5f5; padding: 15px; border-radius: 10px;">
+                        <h4>📈 Informasi Model</h4>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Algoritma: Linear Regression</li>
+                            <li>Preprocessing: One-Hot Encoding</li>
+                            <li>Features: Age, Gender, Blood Type, Medical Condition</li>
+                            <li>Target: Billing Amount</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            document.getElementById('statsDetails').innerHTML = statsHtml;
+        }
+        
+        function generateConditionStats() {
+            const conditionMap = {};
+            dataset.forEach(d => {
+                if (!conditionMap[d.MedicalCondition]) {
+                    conditionMap[d.MedicalCondition] = { count: 0, total: 0 };
+                }
+                conditionMap[d.MedicalCondition].count++;
+                conditionMap[d.MedicalCondition].total += d.BillingAmount;
+            });
+            
+            let html = '<table style="width:100%; margin-top:10px;"><tr><th>Kondisi</th><th>Jumlah</th><th>Rata-rata</th></tr>';
+            for (const [condition, stats] of Object.entries(conditionMap)) {
+                const avg = stats.total / stats.count;
+                html += `<tr><td>${condition}</td><td>${stats.count}</td><td>$${avg.toFixed(2)}</td></tr>`;
+            }
+            html += '</table>';
+            return html;
+        }
+        
+        function generateGenderStats() {
+            const genderMap = {};
+            dataset.forEach(d => {
+                if (!genderMap[d.Gender]) {
+                    genderMap[d.Gender] = { count: 0, total: 0 };
+                }
+                genderMap[d.Gender].count++;
+                genderMap[d.Gender].total += d.BillingAmount;
+            });
+            
+            let html = '<table style="width:100%; margin-top:10px;"><tr><th>Gender</th><th>Jumlah</th><th>Rata-rata</th></tr>';
+            for (const [gender, stats] of Object.entries(genderMap)) {
+                const avg = stats.total / stats.count;
+                html += `<tr><td>${gender}</td><td>${stats.count}</td><td>$${avg.toFixed(2)}</td></tr>`;
+            }
+            html += '</table>';
+            return html;
+        }
+        
+        function generateBloodTypeStats() {
+            const bloodMap = {};
+            dataset.forEach(d => {
+                if (!bloodMap[d.BloodType]) {
+                    bloodMap[d.BloodType] = { count: 0, total: 0 };
+                }
+                bloodMap[d.BloodType].count++;
+                bloodMap[d.BloodType].total += d.BillingAmount;
+            });
+            
+            let html = '<table style="width:100%; margin-top:10px;"><tr><th>Golongan Darah</th><th>Jumlah</th><th>Rata-rata</th></tr>';
+            for (const [blood, stats] of Object.entries(bloodMap).slice(0, 8)) {
+                const avg = stats.total / stats.count;
+                html += `<tr><td>${blood}</td><td>${stats.count}</td><td>$${avg.toFixed(2)}</td></tr>`;
+            }
+            html += '</table>';
+            return html;
+        }
+        
+        function updateChart() {
+            const conditionMap = {};
+            dataset.forEach(d => {
+                if (!conditionMap[d.MedicalCondition]) {
+                    conditionMap[d.MedicalCondition] = { total: 0, count: 0 };
+                }
+                conditionMap[d.MedicalCondition].total += d.BillingAmount;
+                conditionMap[d.MedicalCondition].count++;
+            });
+            
+            const conditions = Object.keys(conditionMap);
+            const avgBillings = conditions.map(c => conditionMap[c].total / conditionMap[c].count);
+            
+            const ctx = document.getElementById('billingChart').getContext('2d');
+            
+            if (billingChart) {
+                billingChart.destroy();
+            }
+            
+            billingChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: conditions,
+                    datasets: [{
+                        label: 'Rata-rata Billing Amount ($)',
+                        data: avgBillings,
+                        backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Billing Amount ($)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Medical Condition'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.getElementById('dataTab').classList.remove('active');
+            document.getElementById('statsTab').classList.remove('active');
+            document.getElementById('chartTab').classList.remove('active');
+            
+            if (tabName === 'data') {
+                document.getElementById('dataTab').classList.add('active');
+            } else if (tabName === 'stats') {
+                document.getElementById('statsTab').classList.add('active');
+            } else if (tabName === 'chart') {
+                document.getElementById('chartTab').classList.add('active');
+                setTimeout(() => {
+                    if (billingChart) billingChart.update();
+                }, 100);
+            }
+        }
+        
+        // Handle form submission
+        const form = document.getElementById('predictionForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const resultCard = document.getElementById('resultCard');
+        const predictionDisplay = document.getElementById('predictionDisplay');
+        const errorCard = document.getElementById('errorCard');
+        
+        // Cek hasil prediksi dari server (jika ada)
+        {% if prediction_text %}
+        resultCard.classList.add('show');
+        predictionDisplay.textContent = '{{ prediction_text }}';
+        {% endif %}
+        
+        {% if error_text %}
+        errorCard.classList.add('show');
+        errorCard.textContent = '❌ {{ error_text }}';
+        setTimeout(() => {
+            errorCard.classList.remove('show');
+        }, 5000);
+        {% endif %}
+        
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const age = document.getElementById('Age').value;
+                const gender = document.getElementById('Gender').value;
+                const bloodType = document.getElementById('Blood Type').value;
+                const medicalCondition = document.getElementById('Medical Condition').value;
+                
+                let errors = [];
+                if (!age) errors.push('Umur harus diisi');
+                if (!gender) errors.push('Jenis kelamin harus dipilih');
+                if (!bloodType) errors.push('Golongan darah harus dipilih');
+                if (!medicalCondition) errors.push('Kondisi medis harus dipilih');
+                
+                if (age && (age < 0 || age > 120)) {
+                    errors.push('Umur harus antara 0 - 120 tahun');
+                }
+                
+                if (errors.length > 0) {
+                    e.preventDefault();
+                    errorCard.classList.add('show');
+                    errorCard.textContent = '❌ ' + errors.join(', ');
+                    setTimeout(() => {
+                        errorCard.classList.remove('show');
+                    }, 5000);
+                    return;
+                }
+                
+                submitBtn.innerHTML = 'Memproses... <span class="loading"></span>';
+                submitBtn.disabled = true;
+            });
+        }
+        
+        // Validasi real-time untuk umur
+        const ageInput = document.getElementById('Age');
+        if (ageInput) {
+            ageInput.addEventListener('input', function(e) {
+                let value = parseInt(e.target.value);
+                if (isNaN(value)) {
+                    e.target.value = '';
+                } else if (value < 0) {
+                    e.target.value = 0;
+                } else if (value > 120) {
+                    e.target.value = 120;
+                }
+            });
+        }
+        
+        // Load data saat halaman dimuat
+        loadData();
+    </script>
+</body>
+</html>
